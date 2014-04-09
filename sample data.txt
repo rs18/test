@@ -1,0 +1,65 @@
+        //Richard: For each project assignment, assign all child workpackages to the assigned user
+        WorkPackageAssignment assignment;
+        Date activateDate = setDate(2, 12, 2014);
+        Date deactivateDate = setDate(12, 8, 2014);
+        List<WorkPackage> wpList;
+        List<ProjectAssignment> paList = projectAssignmentDao.getAll();
+        for(ProjectAssignment pa: paList){
+        	wpList = workPackageDao.getAllByProject(pa.getProjectNumber());
+        	for(WorkPackage wp : wpList){
+            	assignment = new WorkPackageAssignment(wp.getWorkPackageNumber(), pa.getUserId(), false , true, activateDate, deactivateDate);
+                workPackageAssignmentDao.create(assignment, false); 
+        	}
+        }
+
+		
+		
+		 //Richard: Assigning one random project to each user       
+        List<Project> projectList = projectDao.getAll();
+        List<User> userList = userDao.getAll();
+        for(User u : userList){  		
+        	assignment = new ProjectAssignment(projectList.get((u.getId()+10)%(projectList.size())).getProjectNumber(), u.getId(), false, true);        	   
+    		projectAssignmentDao.create(assignment, false);        
+        }
+
+		
+		/**
+     * Generate timesheets for all users for the specified week,
+     * with one timesheetrwo on the timesheet
+     * @param weekNumber
+     * @param year
+     */
+    private void generateTimesheetForAll(int weekNumber, int year){
+    	
+    	List<TimesheetRow> rowCollection= new ArrayList<TimesheetRow>();
+    	Timesheet tempTimesheet;
+    	//TimesheetRow timesheetRow;
+    	List<User> userList = userDao.getAll();
+    	WorkPackageAssignment wpAssignment;
+    	WorkPackage wp;
+    	
+    	for(User u : userList){    		        
+	        //add new timesheet only if no timesheet already exist for the week
+    		List<Timesheet> timesheetList = timesheetDao.getByDate(weekNumber, year, u.getId());
+	        if(timesheetList==null || timesheetList.isEmpty()){
+	        	wpAssignment = workPackageAssignmentDao.getAllByUser(u.getId()).get(0);
+	    		wp = workPackageDao.read(wpAssignment.getWorkPackageNumber());
+	    		TimesheetRow timesheetRow= new TimesheetRow(wp.getProjectNumber(), wp.getWorkPackageNumber(), 0, 50, 60, 30, 50, 30, 0, null,
+		                u.getpLevel());
+	        	rowCollection = new ArrayList<TimesheetRow>();
+		        rowCollection.add(timesheetRow);
+	        	tempTimesheet = new Timesheet(u.getId(), rowCollection, weekNumber, year, 0, false, true, false);
+		        timesheetDao.create(tempTimesheet,false);
+	        }
+    	}
+    
+    }
+		
+
+ TimesheetRow wp2Row2wp = new TimesheetRow(55522, "C333222", 50, 0, 0, 25, 80, 0, 0, null,
+                userDao.read(202).getpLevel());
+        
+        rowCollection = new ArrayList<TimesheetRow>();
+        rowCollection.add(wp2Row2wp);
+        tempTimesheet = new Timesheet(202, rowCollection, 14, 2014, 0, false, true, false);
+        timesheetDao.create(tempTimesheet,false);
